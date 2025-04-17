@@ -1,0 +1,1527 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus AI Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .copy-btn {
+            background-color: #eee;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .copy-btn:hover {
+            background-color: #ccc;
+        }
+
+        .copy-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+        }
+
+        .copy-btn:hover {
+            background-color: #45a049;
+        }
+        .response-frame {
+            border: 1px solid #ddd;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .response-content {
+            margin-bottom: 10px;
+        }
+
+        .copy-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .copy-btn:hover {
+            background-color: #45a049;
+        }
+
+
+        .response-content {
+            font-family: monospace;
+            white-space: pre-wrap;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+            overflow-x: auto;
+        }
+
+        .copy-btn {
+            align-self: flex-end;
+            padding: 0.5rem 1rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .copy-btn:hover {
+            background-color: var(--primary-dark);
+        }
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #f43f5e;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: #f1f5f9;
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        ::-webkit-scrollbar{
+            display: none;
+        }
+        
+        *{
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .app-container {
+            max-width: 1250px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 1rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            position: sticky;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .logo i {
+            font-size: 1.75rem;
+        }
+
+        .settings-btn {
+            background: none;
+            border: 2px solid #f9f4f4;
+            padding: 0.5rem 1rem;
+            font-size: 1.25rem;
+            color: #272727;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .settings-btn:hover {
+            color: var(--primary);
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            gap: 1rem;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: white;
+            border-radius: 1rem;
+            padding: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-title {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .new-chat-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .new-chat-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+
+        .chat-item {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: background-color 0.2s;
+        }
+
+        .chat-item:hover {
+            background-color: #f1f5f9;
+        }
+
+        .chat-item.active {
+            background-color: #e0e7ff;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 1rem;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            display: none;
+        }
+
+        .chat-title {
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .chat-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .status-indicator {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            background-color: var(--success);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .message {
+            display: flex;
+            gap: 1rem;
+            max-width: 80%;
+        }
+
+        .message-user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-ai {
+            align-self: flex-start;
+        }
+
+        .avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1.25rem;
+        }
+
+        .avatar-user {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .avatar-ai {
+            background-color: #e0e7ff;
+            color: var(--primary);
+        }
+
+        .message-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .message-text {
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+
+        .message-user .message-text {
+            background-color: var(--primary);
+            color: white;
+            border-bottom-right-radius: 0.25rem;
+        }
+
+        .message-ai .message-text {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-bottom-left-radius: 0.25rem;
+        }
+
+        .message-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--gray);
+        }
+
+        .message-ai .message-meta {
+            justify-content: flex-start;
+        }
+
+        .message-user .message-meta {
+            justify-content: flex-end;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 0.25rem;
+            padding: 0.75rem 1rem;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            border-bottom-left-radius: 0.25rem;
+            align-self: flex-start;
+        }
+
+        .typing-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            background-color: var(--gray);
+            border-radius: 50%;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingAnimation {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.6;
+            }
+            30% {
+                transform: translateY(-0.25rem);
+                opacity: 1;
+            }
+        }
+
+        .input-container {
+            padding: 1rem;
+            border-top: 1px solid #e2e8f0;
+            background-color: white;
+        }
+
+        .input-box {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .send-btn {
+            padding: 0 1.25rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .send-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .send-btn:disabled {
+            background-color: var(--gray);
+            cursor: not-allowed;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem 0.75rem;
+            background-color: #f1f5f9;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--dark);
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .action-btn:hover {
+            background-color: #e2e8f0;
+        }
+
+        .action-btn i {
+            font-size: 0.875rem;
+        }
+        .chat-footer {
+            text-align: center;
+            padding: 0.5rem;
+            font-size: 1rem;
+            color: var(--dark);
+            background-color: white;
+            border-top: 1px solid #e2e8f0;
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+        }
+
+        .settings-panel {
+            margin-top: 0;
+            padding-top: 20px;
+            border-radius: 20px 20px 0 0;
+            position: fixed;
+            top: 0;
+            right: -350px;
+            width: 350px;
+            border-radius: 0;
+            height: 100vh;
+            background-color: white;
+            box-shadow: -4px 0 6px -1px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
+            z-index: 100;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .settings-panel.open {
+            right: 0;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .settings-title {
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .close-settings {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: var(--gray);
+            cursor: pointer;
+        }
+
+        .settings-content {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .settings-section {
+            margin-bottom: 0rem;
+        }
+
+        .settings-section-title {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--dark);
+        }
+
+        .setting-item {
+            margin-bottom: 1rem;
+        }
+
+        .setting-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--dark);
+        }
+
+        .setting-select, .setting-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .markdown-content a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .markdown-content a:hover {
+            text-decoration: underline;
+        }
+
+        .markdown-content code {
+            background-color: #f1f5f9;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            padding: 10px;
+            background-color: #f4f4f4;
+            border-radius: 6px;
+            font-family: monospace;
+            max-width: 100%;
+            }
+
+        .markdown-content pre {
+            background-color: #f8fafc;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin: 0.5rem 0;
+            border: 1px solid #e2e8f0;
+        }
+
+        .markdown-content pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+
+        .markdown-content ul, .markdown-content ol {
+            padding-left: 1.5rem;
+            margin: 0.5rem 0;
+        }
+
+        .markdown-content blockquote {
+            border-left: 3px solid var(--gray);
+            padding-left: 1rem;
+            margin: 0.5rem 0;
+            color: var(--gray);
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .suggestion-chip {
+            padding: 0.5rem 0.75rem;
+            background-color: #f1f5f9;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .suggestion-chip:hover {
+            background-color: #e2e8f0;
+        }
+
+        /* Mobile menu button */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: 2px solid #f9f4f4;
+            border-radius: 4px;
+            font-size: 1.5rem;
+            color: var(--dark);
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            margin-right: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                padding: 0rem;
+            }
+
+            .main-content {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -100%;
+                width: 80%;
+                max-width: 300px;
+                height: 100vh;
+                z-index: 101;
+                border-radius: 0;
+                transition: left 0.3s ease;
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+
+            .chat-container {
+                border-radius: 0;
+            }
+
+            .message {
+                max-width: 90%;
+            }
+
+            .settings-panel {
+                width: 100%;
+                right: -100%;
+            }
+
+            .settings-panel.open {
+                right: 0;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .mobile-menu-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 100;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.3s ease;
+            }
+
+            .mobile-menu-overlay.open {
+                opacity: 1;
+                pointer-events: all;
+            }
+        }
+
+        /* Animation for new messages */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* General panel styling */
+        .settings-panel {
+            max-width: 500px;
+            margin: 30px auto;
+            padding: 24px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            font-family: 'Segoe UI', sans-serif;
+            color: #333;
+        }
+
+        /* Content layout */
+        .settings-content {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        /* Section titles */
+        .settings-section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #222;
+        }
+
+        /* Section spacing */
+        .settings-section {
+            border-top: 1px solid #e0e0e0;
+            padding-top: 0px;
+        }
+
+        .settings-section:first-child {
+            border-top: none;
+            padding-top: 0;
+        }
+
+        /* Individual setting item */
+        .setting-item {
+            margin-bottom: 20px;
+        }
+
+        /* Label styles */
+        .setting-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        /* Dropdown select */
+        .setting-select {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            transition: border-color 0.3s;
+        }
+
+        .setting-select:focus {
+        border-color: #4caf50;
+        outline: none;
+        }
+
+        /* Toggle switch */
+        .toggle-label {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        color: #555;
+        }
+
+        /* Hide checkbox */
+        .toggle-label input[type="checkbox"] {
+        display: none;
+        }
+
+        /* Switch slider style */
+        .slider {
+        width: 44px;
+        height: 22px;
+        background-color: #ccc;
+        border-radius: 22px;
+        position: relative;
+        transition: background-color 0.3s ease;
+        }
+
+        .slider::before {
+        content: "";
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        left: 2px;
+        top: 2px;
+        background-color: white;
+        border-radius: 50%;
+        transition: transform 0.3s ease;
+        }
+
+        /* Toggle ON */
+        .toggle-label input:checked + .slider {
+        background-color: #4caf50;
+        }
+
+        .toggle-label input:checked + .slider::before {
+        transform: translateX(22px);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                ☰
+            </button>
+            <div class="logo">
+                <i class="fas fa-robot"></i>
+                <span>Orion AI</span>
+            </div>
+            <button class="settings-btn" id="settingsBtn">
+                <i class="fas fa-cog"></i>
+            </button>
+        </header>
+
+        <div class="main-content">
+            <div class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-title">Chats</div>
+                    <button class="new-chat-btn" id="newChatBtn">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <div class="chat-list" id="chatList">
+                    <!-- Chat history items will be added here -->
+                </div>
+                <div class="chat-footer">
+                    Created by Abdullah Ali
+                </div>
+            </div>
+
+            <div class="chat-container">
+                
+                <div class="chat-header">
+                    <div class="chat-title" id="currentChatTitle">New Chat</div>
+                    <div class="chat-status">
+                        <div class="status-indicator"></div>
+                        <span>hi</span>
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Messages will be inserted here -->
+                </div>
+                <!-- filepath: c:\Users\PMLS\Desktop\esp\api\fin.html -->
+                <div class="response-frame" id="responseFrame" style="display: none;">
+                    <div class="response-content" id="responseContent"></div>
+                    <button class="copy-btn" id="copyBtn">Copy</button>
+                </div>
+                <div class="input-container">
+                    <div class="suggestions">
+                        <div class="suggestion-chip">What can you do?</div>
+                        <div class="suggestion-chip">Explain AI in simple terms</div>
+                    </div>
+                    <div class="input-box">
+                        <input type="text" class="input-field" id="messageInput" placeholder="Ask me anything..." autocomplete="off">
+                        <button class="send-btn" id="sendBtn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="action-btn">
+                            <i class="fas fa-microphone"></i>
+                            Voice
+                        </button>
+                        <button class="action-btn">
+                            <i class="fas fa-image"></i>
+                            Image
+                        </button>
+                        <button class="action-btn" id="clearChatBtn">
+                            <i class="fas fa-trash-alt"></i>
+                            Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+
+    <!-- Settings Panel -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header">
+            <div class="settings-title">Settings</div>
+            <button class="close-settings" id="closeSettingsBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="settings-content">
+            <div class="settings-section">
+                <div class="settings-section-title">AI Configuration</div>
+                <div class="setting-item">
+                    <label class="setting-label">AI Model</label>
+                    <select class="setting-select" id="aiModelSelect">
+                        <option value="gpt-4">GPT-4 (Most capable)</option>
+                        <option value="gpt-3.5">GPT-3.5 (Faster)</option>
+                        <option value="claude-2">Claude 2</option>
+                        <option value="llama-2">Llama 2</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label class="setting-label">Response Style</label>
+                    <select class="setting-select" id="responseStyleSelect">
+                        <option value="default">Default</option>
+                        <option value="concise">Concise</option>
+                        <option value="detailed">Detailed</option>
+                        <option value="creative">Creative</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">Appearance</div>
+                <div class="setting-item">
+                    <label class="setting-label">Theme</label>
+                    <select class="setting-select" id="themeSelect">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                        <option value="system">System</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="animationsToggle" checked>
+                        <span class="slider"></span>
+                        Animations
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">Privacy</div>
+                <div class="setting-item">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="historyToggle" checked>
+                        <span class="slider"></span>
+                        Save chat history
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="analyticsToggle">
+                        <span class="slider"></span>
+                        Share usage analytics
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <script>
+        // DOM Elements
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatMessages = document.getElementById('chatMessages');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+        const overlay = document.getElementById('overlay');
+        const clearChatBtn = document.getElementById('clearChatBtn');
+        const suggestionChips = document.querySelectorAll('.suggestion-chip');
+        const newChatBtn = document.getElementById('newChatBtn');
+        const chatList = document.getElementById('chatList');
+        const currentChatTitle = document.getElementById('currentChatTitle');
+        // Corrected code for toggling the sidebar visibility
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+
+        // Toggle mobile menu
+        mobileMenuBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            mobileMenuOverlay.classList.toggle('open');
+        });
+
+        // Close mobile menu when overlay is clicked
+        mobileMenuOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            mobileMenuOverlay.classList.remove('open');
+        });
+        
+        // Configuration
+        const PROXY_URL = "https://abdullahalioo-severr.hf.space/ask";
+        let lastController = null;
+        let isWaitingForResponse = false;
+        
+        // Chat state
+        let chats = [];
+        let currentChatId = null;
+        
+        // Initialize the app
+        function initApp() {
+            loadChats();
+            if (chats.length === 0) {
+                createNewChat();
+            } else {
+                loadChat(chats[0].id);
+            }
+            renderChatList();
+        }
+        
+        // Load chats from localStorage
+        function loadChats() {
+            const savedChats = localStorage.getItem('orionAI_chats');
+            if (savedChats) {
+                chats = JSON.parse(savedChats);
+            }
+        }
+        
+        // Save chats to localStorage
+        function saveChats() {
+            localStorage.setItem('orionAI_chats', JSON.stringify(chats));
+        }
+        
+        // Create a new chat
+        function createNewChat() {
+            const newChat = {
+                id: Date.now().toString(),
+                title: 'New Chat',
+                messages: [], // Ensure this is an empty array
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+
+            chats.unshift(newChat);
+            saveChats();
+            loadChat(newChat.id); // This will trigger the welcome message
+            renderChatList();
+        }
+        
+        // Load a chat by ID
+        function loadChat(chatId) {
+            const chat = chats.find(c => c.id === chatId);
+            if (!chat) return;
+
+            currentChatId = chatId;
+            currentChatTitle.textContent = chat.title;
+
+            // Clear current messages
+            chatMessages.innerHTML = '';
+
+            // Load messages
+            if (chat.messages.length === 0) {
+                addWelcomeMessage(); // Add welcome message if no messages exist
+            } else {
+                chat.messages.forEach(msg => {
+                    addMessage(msg.sender, msg.text, msg.isMarkdown, false);
+                });
+            }
+
+            // Update active state in chat list
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.chatId === chatId);
+            });
+
+            scrollToBottom();
+        }
+        
+        // Add welcome message
+        function addWelcomeMessage() {
+            addMessage('ai', `Hello! I'm Orion AI, your advanced assistant. How can I help you today?`);
+        }
+        
+        // Render chat list
+        function renderChatList() {
+            chatList.innerHTML = '';
+            
+            chats.forEach(chat => {
+                const chatItem = document.createElement('div');
+                chatItem.className = `chat-item ${chat.id === currentChatId ? 'active' : ''}`;
+                chatItem.dataset.chatId = chat.id;
+                chatItem.textContent = chat.title;
+                
+                chatItem.addEventListener('click', () => {
+                    loadChat(chat.id);
+                    closeMobileMenu();
+                });
+                
+                chatList.appendChild(chatItem);
+            });
+        }
+        
+        // Update chat title based on first message
+        function updateChatTitle(messageText) {
+            if (!currentChatId) return;
+            
+            const chat = chats.find(c => c.id === currentChatId);
+            if (!chat) return;
+            
+            // Only update if it's still the default title
+            if (chat.title === 'New Chat') {
+                // Take first 30 characters of the message
+                const newTitle = messageText.length > 30 
+                    ? messageText.substring(0, 30) + '...' 
+                    : messageText;
+                
+                chat.title = newTitle;
+                currentChatTitle.textContent = newTitle;
+                saveChats();
+                renderChatList();
+            }
+        }
+    
+        function addMessage(sender, text, isMarkdown = true, saveToHistory = true) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message message-${sender}`;
+            
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = `avatar avatar-${sender}`;
+            avatarDiv.innerHTML = sender === 'ai' ? '<i class="fas fa-robot"></i>' : '<i class="fas fa-user"></i>';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            const textDiv = document.createElement('div');
+            textDiv.className = 'message-text';
+            
+            if (isMarkdown) {
+                textDiv.classList.add('markdown-content');
+
+                if (sender === 'ai') {
+                    const codeBlockRegex = /```([\s\S]*?)```/g;
+                    let match;
+                    let lastIndex = 0;
+
+                    while ((match = codeBlockRegex.exec(text)) !== null) {
+                        const beforeCode = text.slice(lastIndex, match.index);
+                        if (beforeCode.trim()) {
+                            const textPart = document.createElement('p');
+                            textPart.innerHTML = beforeCode.trim();
+                            textDiv.appendChild(textPart);
+                        }
+
+                        const code = match[1].trim();
+
+                        const codeContainer = document.createElement('div');
+                        codeContainer.style.position = 'relative';
+                        codeContainer.style.marginTop = '10px';
+
+                        const pre = document.createElement('pre');
+                        pre.style.whiteSpace = 'pre-wrap'; // Add this line
+// This wraps the code lines
+                        const codeElement = document.createElement('code');
+                        codeElement.textContent = code;
+                        pre.appendChild(codeElement);
+
+
+                        const copyBtn = document.createElement('button');
+                        copyBtn.textContent = 'Copy';
+                        copyBtn.className = 'copy-btn';
+                        copyBtn.style.position = 'absolute';
+                        copyBtn.style.top = '5px';
+                        copyBtn.style.right = '5px';
+                        copyBtn.style.fontSize = '0.8rem';
+                        copyBtn.style.padding = '2px 5px';
+                        copyBtn.style.cursor = 'pointer';
+
+                        copyBtn.addEventListener('click', () => {
+                            navigator.clipboard.writeText(code).then(() => {
+                                copyBtn.textContent = 'Copied!';
+                                setTimeout(() => (copyBtn.textContent = 'Copy'), 2000);
+                            }).catch(err => {
+                                console.error('Failed to copy text: ', err);
+                            });
+                        });
+
+                        codeContainer.appendChild(pre);
+                        codeContainer.appendChild(copyBtn);
+                        textDiv.appendChild(codeContainer);
+
+                        lastIndex = codeBlockRegex.lastIndex;
+                    }
+
+                    const remainingText = text.slice(lastIndex).trim();
+                    if (remainingText) {
+                        const remainingPart = document.createElement('p');
+                        remainingPart.innerHTML = remainingText;
+                        textDiv.appendChild(remainingPart);
+                    }
+                } else {
+                    textDiv.innerHTML = text;
+                }
+            } else {
+                textDiv.textContent = text;
+            }
+
+            const metaDiv = document.createElement('div');
+            metaDiv.className = 'message-meta';
+
+            const timeSpan = document.createElement('span');
+            timeSpan.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            if (sender === 'ai') {
+                const modelSpan = document.createElement('span');
+                modelSpan.textContent = 'GPT-4o';
+                metaDiv.appendChild(modelSpan);
+            }
+
+            metaDiv.appendChild(timeSpan);
+            contentDiv.appendChild(textDiv);
+            contentDiv.appendChild(metaDiv);
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
+
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+
+            // Save to chat history
+            if (saveToHistory && currentChatId) {
+                const chat = chats.find(c => c.id === currentChatId);
+                if (chat) {
+                    chat.messages.push({
+                        sender,
+                        text,
+                        isMarkdown,
+                        timestamp: new Date().toISOString()
+                    });
+                    chat.updatedAt = new Date().toISOString();
+                    saveChats();
+
+                    if (sender === 'user') {
+                        updateChatTitle(text);
+                    }
+                }
+            }
+        }
+
+        // Show typing indicator
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.id = 'typingIndicator';
+            
+            for (let i = 0; i < 3; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'typing-dot';
+                typingDiv.appendChild(dot);
+            }
+            
+            chatMessages.appendChild(typingDiv);
+            scrollToBottom();
+        }
+
+        
+        // Hide typing indicator
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+        
+        // Scroll to bottom of chat
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Send message to AI
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message || isWaitingForResponse) return;
+            
+            // Add user message to chat
+            addMessage('user', message, false);
+            messageInput.value = '';
+            
+            // Show typing indicator
+            showTypingIndicator();
+            isWaitingForResponse = true;
+            sendBtn.disabled = true;
+            
+            // Abort previous request if exists
+            if (lastController) lastController.abort();
+            const controller = new AbortController();
+            lastController = controller;
+            
+            try {
+                const startTime = performance.now();
+                
+                const response = await fetch(PROXY_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: message }),
+                    signal: controller.signal
+                });
+                
+                if (!response.ok) throw new Error(await response.text());
+                
+                const data = await response.json();
+                const latency = performance.now() - startTime;
+                
+                // Hide typing indicator
+                hideTypingIndicator();
+                
+                // Add AI response to chat
+                addMessage('ai', data.answer);
+                
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    hideTypingIndicator();
+                    addMessage('ai', `Error, Retry`, false);
+                }
+            } finally {
+                isWaitingForResponse = false;
+                sendBtn.disabled = false;
+            }
+        }
+        
+        // Clear current chat
+        function clearCurrentChat() {
+            if (!currentChatId) return;
+            
+            const chat = chats.find(c => c.id === currentChatId);
+            if (chat) {
+                chat.messages = [];
+                chat.updatedAt = new Date().toISOString();
+                saveChats();
+            }
+            
+            chatMessages.innerHTML = '';
+            addWelcomeMessage();
+        }
+        
+        // Toggle mobile menu
+        function toggleMobileMenu() {
+            sidebarElement.classList.toggle('open');
+            mobileMenuOverlay.classList.toggle('open');
+        }
+        
+        // Close mobile menu
+        function closeMobileMenu() {
+            sidebarElement.classList.remove('open');
+            mobileMenuOverlay.classList.remove('open');
+        }
+
+        // Event Listeners
+        sendBtn.addEventListener('click', sendMessage);
+        
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        // Settings panel toggle
+	        settingsBtn.addEventListener('click', () => {
+            settingsPanel.classList.add('open');
+            overlay.classList.add('open');
+        });
+        
+        closeSettingsBtn.addEventListener('click', () => {
+            settingsPanel.classList.remove('open');
+            overlay.classList.remove('open');
+        });
+        
+        overlay.addEventListener('click', () => {
+            settingsPanel.classList.remove('open');
+            overlay.classList.remove('open');
+        });
+        
+        // Clear chat
+        clearChatBtn.addEventListener('click', clearCurrentChat);
+        
+        // New chat button
+        newChatBtn.addEventListener('click', createNewChat);
+        
+        // Suggestion chips
+        suggestionChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                messageInput.value = chip.textContent;
+                messageInput.focus();
+            });
+        });
+        // DOM Elements
+        const menuBtn = document.getElementById('menuBtn');
+        const sidebarElement = document.querySelector('.sidebar');
+
+        // Toggle sidebar visibility
+        menuBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+        
+        
+        // Initialize app
+        function initApp() {
+            loadChats();
+            if (chats.length === 0) {
+                createNewChat(); // This should create a new chat and trigger the welcome message
+            } else {
+                loadChat(chats[0].id);
+            }
+            renderChatList();
+        }
+
+        messageInput.focus();
+    </script>
+</body>
+</html>
