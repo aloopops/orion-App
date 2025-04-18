@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -954,27 +953,29 @@
             </div>
 
             <div class="chat-container">
-                
                 <div class="chat-header">
                     <div class="chat-title" id="currentChatTitle">New Chat</div>
                     <div class="chat-status">
                         <div class="status-indicator"></div>
-                        <span>hi</span>
+                        <span>Online</span>
                     </div>
                 </div>
 
                 <div class="chat-messages" id="chatMessages">
                     <!-- Messages will be inserted here -->
                 </div>
-                <!-- filepath: c:\Users\PMLS\Desktop\esp\api\fin.html -->
+                
                 <div class="response-frame" id="responseFrame" style="display: none;">
                     <div class="response-content" id="responseContent"></div>
                     <button class="copy-btn" id="copyBtn">Copy</button>
                 </div>
+                
                 <div class="input-container">
                     <div class="suggestions">
                         <div class="suggestion-chip">What can you do?</div>
                         <div class="suggestion-chip">Explain AI in simple terms</div>
+                        <div class="suggestion-chip">Tell me a joke</div>
+                        <div class="suggestion-chip">Help with coding</div>
                     </div>
                     <div class="input-box">
                         <input type="text" class="input-field" id="messageInput" placeholder="Ask me anything..." autocomplete="off">
@@ -983,11 +984,11 @@
                         </button>
                     </div>
                     <div class="action-buttons">
-                        <button class="action-btn">
+                        <button class="action-btn" id="voiceBtn">
                             <i class="fas fa-microphone"></i>
                             Voice
                         </button>
-                        <button class="action-btn">
+                        <button class="action-btn" id="imageBtn">
                             <i class="fas fa-image"></i>
                             Image
                         </button>
@@ -1091,24 +1092,18 @@
         const newChatBtn = document.getElementById('newChatBtn');
         const chatList = document.getElementById('chatList');
         const currentChatTitle = document.getElementById('currentChatTitle');
-        // Corrected code for toggling the sidebar visibility
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+        const sidebar = document.getElementById('sidebar');
+        const voiceBtn = document.getElementById('voiceBtn');
+        const imageBtn = document.getElementById('imageBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const responseFrame = document.getElementById('responseFrame');
+        const responseContent = document.getElementById('responseContent');
 
-        // Toggle mobile menu
-        mobileMenuBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
-            mobileMenuOverlay.classList.toggle('open');
-        });
-
-        // Close mobile menu when overlay is clicked
-        mobileMenuOverlay.addEventListener('click', () => {
-            sidebar.classList.remove('open');
-            mobileMenuOverlay.classList.remove('open');
-        });
-        
         // Configuration
         const PROXY_URL = "https://abdullahalioo-severr.hf.space/ask";
+        const STORAGE_KEY = 'orionAI_chats_v2';
         let lastController = null;
         let isWaitingForResponse = false;
         
@@ -1116,28 +1111,124 @@
         let chats = [];
         let currentChatId = null;
         
-        // Initialize the app
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            initApp();
+            messageInput.focus();
+        });
+
+        // Initialize the application
         function initApp() {
             loadChats();
+            
+            // If no chats exist or loading failed, create a new one
             if (chats.length === 0) {
                 createNewChat();
             } else {
+                // Load the most recent chat
                 loadChat(chats[0].id);
             }
+            
             renderChatList();
+            setupEventListeners();
+        }
+
+        // Set up all event listeners
+        function setupEventListeners() {
+            // Message sending
+            sendBtn.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // UI controls
+            settingsBtn.addEventListener('click', () => {
+                settingsPanel.classList.add('open');
+                overlay.classList.add('open');
+            });
+            
+            closeSettingsBtn.addEventListener('click', () => {
+                settingsPanel.classList.remove('open');
+                overlay.classList.remove('open');
+            });
+            
+            overlay.addEventListener('click', () => {
+                settingsPanel.classList.remove('open');
+                overlay.classList.remove('open');
+            });
+            
+            // Chat management
+            clearChatBtn.addEventListener('click', clearCurrentChat);
+            newChatBtn.addEventListener('click', createNewChat);
+            
+            // Suggestion chips
+            suggestionChips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    messageInput.value = chip.textContent;
+                    messageInput.focus();
+                });
+            });
+
+            // Mobile menu
+            mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+            mobileMenuOverlay.addEventListener('click', closeMobileMenu);
+            
+            // Copy button
+            copyBtn.addEventListener('click', copyResponse);
+            
+            // Save before unload
+            window.addEventListener('beforeunload', () => {
+                saveChats();
+            });
         }
         
-        // Load chats from localStorage
+        // Load chats from localStorage with error handling
         function loadChats() {
-            const savedChats = localStorage.getItem('orionAI_chats');
-            if (savedChats) {
-                chats = JSON.parse(savedChats);
+            try {
+                const savedChats = localStorage.getItem(STORAGE_KEY);
+                if (savedChats) {
+                    chats = JSON.parse(savedChats);
+                    
+                    // Validate chat data structure
+                    if (!Array.isArray(chats)) {
+                        console.warn('Invalid chat data - resetting');
+                        chats = [];
+                        return;
+                    }
+                    
+                    // Ensure each chat has required fields
+                    chats = chats.filter(chat => {
+                        return chat.id && chat.title && Array.isArray(chat.messages);
+                    });
+                    
+                    // Sort chats by updatedAt (newest first)
+                    chats.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+                }
+            } catch (e) {
+                console.error('Failed to load chats:', e);
+                chats = [];
             }
         }
         
-        // Save chats to localStorage
+        // Save chats to localStorage with error handling
         function saveChats() {
-            localStorage.setItem('orionAI_chats', JSON.stringify(chats));
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(chats));
+            } catch (e) {
+                console.error('Failed to save chats:', e);
+                // Try to clean up storage if it's full
+                if (e.name === 'QuotaExceededError') {
+                    alert('Storage is full. Clearing old chats to free up space.');
+                    // Keep only the 10 most recent chats
+                    if (chats.length > 10) {
+                        chats = chats.slice(0, 10);
+                        saveChats();
+                    }
+                }
+            }
         }
         
         // Create a new chat
@@ -1145,21 +1236,24 @@
             const newChat = {
                 id: Date.now().toString(),
                 title: 'New Chat',
-                messages: [], // Ensure this is an empty array
+                messages: [],
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
 
             chats.unshift(newChat);
             saveChats();
-            loadChat(newChat.id); // This will trigger the welcome message
+            loadChat(newChat.id);
             renderChatList();
         }
         
         // Load a chat by ID
         function loadChat(chatId) {
             const chat = chats.find(c => c.id === chatId);
-            if (!chat) return;
+            if (!chat) {
+                console.error('Chat not found:', chatId);
+                return;
+            }
 
             currentChatId = chatId;
             currentChatTitle.textContent = chat.title;
@@ -1167,9 +1261,9 @@
             // Clear current messages
             chatMessages.innerHTML = '';
 
-            // Load messages
+            // Load messages or show welcome message if empty
             if (chat.messages.length === 0) {
-                addWelcomeMessage(); // Add welcome message if no messages exist
+                addWelcomeMessage();
             } else {
                 chat.messages.forEach(msg => {
                     addMessage(msg.sender, msg.text, msg.isMarkdown, false);
@@ -1213,22 +1307,28 @@
             if (!currentChatId) return;
             
             const chat = chats.find(c => c.id === currentChatId);
-            if (!chat) return;
+            if (!chat || chat.title !== 'New Chat') return;
             
-            // Only update if it's still the default title
-            if (chat.title === 'New Chat') {
-                // Take first 30 characters of the message
-                const newTitle = messageText.length > 30 
-                    ? messageText.substring(0, 30) + '...' 
-                    : messageText;
-                
+            // Clean the message text for title
+            const cleanText = messageText
+                .replace(/[^\w\s]/gi, '') // Remove special chars
+                .replace(/\s+/g, ' ')      // Collapse multiple spaces
+                .trim();
+            
+            const newTitle = cleanText.length > 30 
+                ? cleanText.substring(0, 30) + '...' 
+                : cleanText;
+            
+            if (newTitle.trim().length > 0) {
                 chat.title = newTitle;
                 currentChatTitle.textContent = newTitle;
+                chat.updatedAt = new Date().toISOString();
                 saveChats();
                 renderChatList();
             }
         }
-    
+
+        // Add a message to the chat
         function addMessage(sender, text, isMarkdown = true, saveToHistory = true) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message message-${sender}`;
@@ -1245,82 +1345,19 @@
             
             if (isMarkdown) {
                 textDiv.classList.add('markdown-content');
-
-                if (sender === 'ai') {
-                    const codeBlockRegex = /```([\s\S]*?)```/g;
-                    let match;
-                    let lastIndex = 0;
-
-                    while ((match = codeBlockRegex.exec(text)) !== null) {
-                        const beforeCode = text.slice(lastIndex, match.index);
-                        if (beforeCode.trim()) {
-                            const textPart = document.createElement('p');
-                            textPart.innerHTML = beforeCode.trim();
-                            textDiv.appendChild(textPart);
-                        }
-
-                        const code = match[1].trim();
-
-                        const codeContainer = document.createElement('div');
-                        codeContainer.style.position = 'relative';
-                        codeContainer.style.marginTop = '10px';
-
-                        const pre = document.createElement('pre');
-                        pre.style.whiteSpace = 'pre-wrap'; // Add this line
-// This wraps the code lines
-                        const codeElement = document.createElement('code');
-                        codeElement.textContent = code;
-                        pre.appendChild(codeElement);
-
-
-                        const copyBtn = document.createElement('button');
-                        copyBtn.textContent = 'Copy';
-                        copyBtn.className = 'copy-btn';
-                        copyBtn.style.position = 'absolute';
-                        copyBtn.style.top = '5px';
-                        copyBtn.style.right = '5px';
-                        copyBtn.style.fontSize = '0.8rem';
-                        copyBtn.style.padding = '2px 5px';
-                        copyBtn.style.cursor = 'pointer';
-
-                        copyBtn.addEventListener('click', () => {
-                            navigator.clipboard.writeText(code).then(() => {
-                                copyBtn.textContent = 'Copied!';
-                                setTimeout(() => (copyBtn.textContent = 'Copy'), 2000);
-                            }).catch(err => {
-                                console.error('Failed to copy text: ', err);
-                            });
-                        });
-
-                        codeContainer.appendChild(pre);
-                        codeContainer.appendChild(copyBtn);
-                        textDiv.appendChild(codeContainer);
-
-                        lastIndex = codeBlockRegex.lastIndex;
-                    }
-
-                    const remainingText = text.slice(lastIndex).trim();
-                    if (remainingText) {
-                        const remainingPart = document.createElement('p');
-                        remainingPart.innerHTML = remainingText;
-                        textDiv.appendChild(remainingPart);
-                    }
-                } else {
-                    textDiv.innerHTML = text;
-                }
+                textDiv.innerHTML = formatMarkdown(text);
             } else {
                 textDiv.textContent = text;
             }
 
             const metaDiv = document.createElement('div');
             metaDiv.className = 'message-meta';
-
             const timeSpan = document.createElement('span');
             timeSpan.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
             if (sender === 'ai') {
                 const modelSpan = document.createElement('span');
-                modelSpan.textContent = 'GPT-4o';
+                modelSpan.textContent = 'GPT-4';
                 metaDiv.appendChild(modelSpan);
             }
 
@@ -1353,6 +1390,27 @@
             }
         }
 
+        // Format markdown text (simplified version)
+        function formatMarkdown(text) {
+            // Convert code blocks
+            text = text.replace(/```([a-z]*)\n([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code></pre>');
+            
+            // Convert inline code
+            text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+            
+            // Convert links
+            text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+            
+            // Convert bold and italic
+            text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+            text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+            
+            // Convert line breaks to <br>
+            text = text.replace(/\n/g, '<br>');
+            
+            return text;
+        }
+
         // Show typing indicator
         function showTypingIndicator() {
             const typingDiv = document.createElement('div');
@@ -1368,7 +1426,6 @@
             chatMessages.appendChild(typingDiv);
             scrollToBottom();
         }
-
         
         // Hide typing indicator
         function hideTypingIndicator() {
@@ -1412,7 +1469,9 @@
                     signal: controller.signal
                 });
                 
-                if (!response.ok) throw new Error(await response.text());
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 
                 const data = await response.json();
                 const latency = performance.now() - startTime;
@@ -1421,12 +1480,17 @@
                 hideTypingIndicator();
                 
                 // Add AI response to chat
-                addMessage('ai', data.answer);
+                if (data.answer) {
+                    addMessage('ai', data.answer);
+                } else {
+                    throw new Error('No answer in response');
+                }
                 
             } catch (err) {
+                hideTypingIndicator();
                 if (err.name !== 'AbortError') {
-                    hideTypingIndicator();
-                    addMessage('ai', `Error, Retry`, false);
+                    console.error('Error sending message:', err);
+                    addMessage('ai', `Sorry, I encountered an error. Please try again.`, false);
                 }
             } finally {
                 isWaitingForResponse = false;
@@ -1451,77 +1515,29 @@
         
         // Toggle mobile menu
         function toggleMobileMenu() {
-            sidebarElement.classList.toggle('open');
+            sidebar.classList.toggle('open');
             mobileMenuOverlay.classList.toggle('open');
         }
         
         // Close mobile menu
         function closeMobileMenu() {
-            sidebarElement.classList.remove('open');
+            sidebar.classList.remove('open');
             mobileMenuOverlay.classList.remove('open');
         }
 
-        // Event Listeners
-        sendBtn.addEventListener('click', sendMessage);
-        
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-        
-        // Settings panel toggle
-	        settingsBtn.addEventListener('click', () => {
-            settingsPanel.classList.add('open');
-            overlay.classList.add('open');
-        });
-        
-        closeSettingsBtn.addEventListener('click', () => {
-            settingsPanel.classList.remove('open');
-            overlay.classList.remove('open');
-        });
-        
-        overlay.addEventListener('click', () => {
-            settingsPanel.classList.remove('open');
-            overlay.classList.remove('open');
-        });
-        
-        // Clear chat
-        clearChatBtn.addEventListener('click', clearCurrentChat);
-        
-        // New chat button
-        newChatBtn.addEventListener('click', createNewChat);
-        
-        // Suggestion chips
-        suggestionChips.forEach(chip => {
-            chip.addEventListener('click', () => {
-                messageInput.value = chip.textContent;
-                messageInput.focus();
+        // Copy response to clipboard
+        function copyResponse() {
+            const textToCopy = responseContent.textContent;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
             });
-        });
-        // DOM Elements
-        const menuBtn = document.getElementById('menuBtn');
-        const sidebarElement = document.querySelector('.sidebar');
-
-        // Toggle sidebar visibility
-        menuBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
-        });
-        
-        
-        // Initialize app
-        function initApp() {
-            loadChats();
-            if (chats.length === 0) {
-                createNewChat(); // This should create a new chat and trigger the welcome message
-            } else {
-                loadChat(chats[0].id);
-            }
-            renderChatList();
         }
-
-        messageInput.focus();
+        
     </script>
 </body>
 </html>
